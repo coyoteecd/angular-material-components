@@ -104,6 +104,7 @@ export class NgxMatDatetimeContent<D> extends _MatDatepickerContentMixinBase
 @Component({
   selector: 'ngx-mat-datetime-picker',
   template: '',
+  styleUrls: ['./datetime-picker.component.scss'],
   exportAs: 'ngxMatDatetimePicker',
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
@@ -128,7 +129,7 @@ export class NgxMatDatetimePicker<D> implements OnDestroy, CanColor {
 
   /** The view that the calendar should start in. */
   @Input() startView: 'month' | 'year' | 'multi-year' = 'month';
-  
+
    /** Default Color palette to use on the datepicker's calendar. */
   @Input()
   get defaultColor(): ThemePalette {
