@@ -37,6 +37,7 @@ export class NgxMatTimepickerComponent<D> implements ControlValueAccessor, OnIni
   @Input() enableMeridian = false;
   @Input() defaultTime: number[];
   @Input() color: ThemePalette = 'primary';
+  @Input() roundToStep = false;
 
   public meridian: string = MERIDIANS.AM;
 
@@ -139,7 +140,7 @@ export class NgxMatTimepickerComponent<D> implements ControlValueAccessor, OnIni
 
   /**
    * Format input
-   * @param input 
+   * @param input
    */
   public formatInput(input: HTMLInputElement) {
     input.value = input.value.replace(NUMERIC_REGEX, '');
@@ -151,10 +152,45 @@ export class NgxMatTimepickerComponent<D> implements ControlValueAccessor, OnIni
     this.change('hour');
   }
 
-  /** Change property of time */
+  /** Change property of time based on arrow buttons */
   public change(prop: string, up?: boolean) {
     const next = this._getNextValueByProp(prop, up);
-    this.form.controls[prop].setValue(formatTwoDigitTimeValue(next), { onlySelf: false, emitEvent: false });
+    this._changeTime(prop, next);
+  }
+
+  public inputTouchStart(startEvent: TouchEvent, prop: string) {
+    // Single finger touch only
+    // For info about touches and changedTouches, see https://stackoverflow.com/a/7236327
+    if (startEvent.touches.length === 1) {
+
+      const touchYStart = startEvent.changedTouches[0].clientY;
+      const target = startEvent.currentTarget as HTMLElement;
+      const initialValue = this[prop];
+
+      // Handler for touch move
+      const touchMoveListener = (moveEvent: TouchEvent) => {
+        const deltaY = moveEvent.changedTouches[0].clientY - touchYStart;
+        const value = this._getValueByTouchPos(prop, initialValue, deltaY);
+        this._changeTime(prop, value);
+      };
+
+      // Handler for removing touch listeners
+      const touchRemoveListeners = () => {
+        window.removeEventListener('touchmove', touchMoveListener);
+        window.removeEventListener('touchend', touchRemoveListeners);
+        target.removeEventListener('touchcancel', touchRemoveListeners);
+      };
+
+      // Add it here so it can capture finger up when finger moved outside the element
+      target.addEventListener('touchcancel', touchRemoveListeners);
+      window.addEventListener('touchend', touchRemoveListeners);
+      window.addEventListener('touchmove', touchMoveListener);
+    }
+  }
+
+  /** Change property of time with specified value */
+  private _changeTime(prop: string, value: number) {
+    this.form.controls[prop].setValue(formatTwoDigitTimeValue(value), { onlySelf: false, emitEvent: false });
     this._updateModel();
   }
 
@@ -198,12 +234,21 @@ export class NgxMatTimepickerComponent<D> implements ControlValueAccessor, OnIni
     this._onChange(this._model);
   }
 
-  /**
-   * Get next value by property
-   * @param prop 
-   * @param up
-   */
-  private _getNextValueByProp(prop: string, up?: boolean): number {
+  private _getNextValue(value: number, step: number, stepCount: number) {
+    if (this.roundToStep && value % step !== 0) {
+      if (stepCount > 0) {
+        value = Math.ceil(value / step) * step;
+        stepCount -= 1;
+      } else if (stepCount < 0) {
+        value -= (value % step);
+        stepCount += 1;
+      }
+    }
+    return value + step * stepCount;
+  }
+
+  // Makes sure that the value is within the boundaries of the prop
+  private _normalizeValue(prop: string, value: number): number {
     const keyProp = prop[0].toUpperCase() + prop.slice(1);
     const min = LIMIT_TIMES[`min${keyProp}`];
     let max = LIMIT_TIMES[`max${keyProp}`];
@@ -212,29 +257,41 @@ export class NgxMatTimepickerComponent<D> implements ControlValueAccessor, OnIni
       max = LIMIT_TIMES.meridian;
     }
 
-    let next;
-    if (up == null) {
-      next = this[prop] % (max);
-      if (prop === 'hour' && this.enableMeridian) {
-        if (next === 0) next = max;
-      }
-    } else {
-      next = up ? this[prop] + this[`step${keyProp}`] : this[prop] - this[`step${keyProp}`];
-      if (prop === 'hour' && this.enableMeridian) {
-        next = next % (max + 1);
-        if (next === 0) next = up ? 1 : max;
-      } else {
-        next = next % max;
-      }
-      if (up) {
-        next = next > max ? (next - max + min) : next;
-      } else {
-        next = next < min ? (next - min + max) : next;
-      }
+    value %= max;
+    value = value > max ? (value - max + min) : value;
+    value = value < min ? (value - min + max) : value;
 
+    if (prop === 'hour' && this.enableMeridian) {
+      if (value === 0) value = max;
     }
 
-    return next;
+    return value;
   }
 
+  /**
+   * Get next value by property based on up/down
+   * @param prop
+   * @param up
+   */
+  private _getNextValueByProp(prop: string, up?: boolean): number {
+    const keyProp = prop[0].toUpperCase() + prop.slice(1);
+
+    const next = (up == null) ?
+      this[prop] :
+      this._getNextValue(this[prop], this[`step${keyProp}`], up ? 1 : -1);
+
+    return this._normalizeValue(prop, next);
+  }
+
+  /**
+   * Get next value by touch position
+   */
+  private _getValueByTouchPos(prop: string, initialVal: number, deltaY: number): number {
+    const keyProp = prop[0].toUpperCase() + prop.slice(1);
+    const step = this[`step${keyProp}`];
+    const stepCount = Math.trunc(-deltaY / 15);
+
+    const next = this._getNextValue(initialVal, step, stepCount);
+    return this._normalizeValue(prop, next);
+  }
 }
