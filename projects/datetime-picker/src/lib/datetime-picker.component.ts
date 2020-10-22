@@ -245,6 +245,12 @@ export class NgxMatDatetimePicker<D> implements OnDestroy, CanColor {
   set stepSecond(value: number) { this._stepSecond = value; }
   public _stepSecond: number = DEFAULT_STEP;
 
+  /** Round to step value */
+  @Input()
+  get roundToStep(): boolean { return this._roundToStep; }
+  set roundToStep(value: boolean) { this._roundToStep = value; }
+  public _roundToStep: boolean = false;
+
   /** Enable meridian */
   @Input()
   get enableMeridian(): boolean { return this._enableMeridian; }

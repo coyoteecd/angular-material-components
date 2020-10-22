@@ -2,7 +2,7 @@ $fontSizeIcon: 24px;
 $sizeButtonMeridian: 36px;
 
 .ngx-mat-timepicker {
-  font-size: 13px;
+  font-size: 130%;
   form {
     min-width: 90px;
     .ngx-mat-timepicker-table {
@@ -37,9 +37,10 @@ $sizeButtonMeridian: 36px;
               }
             }
             .mat-form-field {
-              width: 20px;
-              max-width: 20px;
+              max-width: 1.3rem;
               text-align: center;
+              touch-action: none;
+              margin: -.6rem .2rem;
             }
           }
         }
