@@ -115,6 +115,7 @@ export class NgxMatDatetimeContent<D> extends _MatDatepickerContentMixinBase
 @Component({
   selector: 'ngx-mat-datetime-picker',
   template: '',
+  styleUrls: ['./datetime-picker.component.scss'],
   exportAs: 'ngxMatDatetimePicker',
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
