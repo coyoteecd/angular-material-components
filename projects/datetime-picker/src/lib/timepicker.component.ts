@@ -38,6 +38,7 @@ export class NgxMatTimepickerComponent<D> implements ControlValueAccessor, OnIni
   @Input() defaultTime: number[];
   @Input() color: ThemePalette = 'primary';
   @Input() roundToStep = false;
+  @Input() swipeSensitivity = 15; // Between 5 and 50
 
   public meridian: string = MERIDIANS.AM;
 
@@ -164,10 +165,14 @@ export class NgxMatTimepickerComponent<D> implements ControlValueAccessor, OnIni
       const target = startEvent.currentTarget as HTMLElement;
       const initialValue = this[prop];
 
+      const cssPixelsPerStep = Math.min(Math.max(this.swipeSensitivity, 5), 50);
+      const pixelsPerStep = cssPixelsPerStep * devicePixelRatio;
+
       // Handler for touch move
       const touchMoveListener = (moveEvent: TouchEvent) => {
         const deltaY = moveEvent.changedTouches[0].clientY - touchYStart;
-        const value = this._getValueByTouchPos(prop, initialValue, deltaY);
+        const steps = Math.trunc(-deltaY / pixelsPerStep);
+        const value = this._getValueByTouchPos(prop, initialValue, steps);
         this._changeTime(prop, value);
       };
 
@@ -284,10 +289,9 @@ export class NgxMatTimepickerComponent<D> implements ControlValueAccessor, OnIni
   /**
    * Get next value by touch position
    */
-  private _getValueByTouchPos(prop: string, initialVal: number, deltaY: number): number {
+  private _getValueByTouchPos(prop: string, initialVal: number, stepCount: number): number {
     const keyProp = prop[0].toUpperCase() + prop.slice(1);
     const step = this[`step${keyProp}`];
-    const stepCount = Math.trunc(-deltaY / 15);
 
     const next = this._getNextValue(initialVal, step, stepCount);
     return this._normalizeValue(prop, next);
