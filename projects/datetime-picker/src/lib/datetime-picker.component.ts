@@ -251,6 +251,12 @@ export class NgxMatDatetimePicker<D> implements OnDestroy, CanColor {
   set roundToStep(value: boolean) { this._roundToStep = value; }
   public _roundToStep: boolean = false;
 
+  /** Time swipe sensitivity (between 5 and 50) */
+  @Input()
+  get swipeSensitivity(): number { return this._swipeSensitivity; }
+  set swipeSensitivity(value: number) { this._swipeSensitivity = value; }
+  public _swipeSensitivity: number = 15;
+
   /** Enable meridian */
   @Input()
   get enableMeridian(): boolean { return this._enableMeridian; }
