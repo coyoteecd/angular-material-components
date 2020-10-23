@@ -187,7 +187,8 @@ export class NgxMatTimepickerComponent<D> implements ControlValueAccessor, OnIni
 
   /** Change property of time with specified value */
   private _changeTime(prop: string, value: number) {
-    this.form.controls[prop].setValue(formatTwoDigitTimeValue(value), { onlySelf: false, emitEvent: false });
+    const formattedValue = (prop === 'hour' && this.enableMeridian) ? value : formatTwoDigitTimeValue(value);
+    this.form.controls[prop].setValue(formattedValue, { onlySelf: false, emitEvent: false });
     this._updateModel();
   }
 
@@ -209,7 +210,7 @@ export class NgxMatTimepickerComponent<D> implements ControlValueAccessor, OnIni
       }
     }
 
-    this.form.controls['hour'].setValue(formatTwoDigitTimeValue(_hour));
+    this.form.controls['hour'].setValue(this.enableMeridian ? _hour : formatTwoDigitTimeValue(_hour));
     this.form.controls['minute'].setValue(formatTwoDigitTimeValue(_minute));
     this.form.controls['second'].setValue(formatTwoDigitTimeValue(_second));
   }
