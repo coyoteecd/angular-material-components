@@ -1,7 +1,10 @@
 .mat-datepicker-dialog {
   overflow: auto;
+  max-width: unset !important;
 
   .mat-dialog-container {
     padding: 0px !important;
+    overflow: unset;
+    width: unset;
   }
 }
