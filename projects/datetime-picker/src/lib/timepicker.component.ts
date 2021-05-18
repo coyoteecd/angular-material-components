@@ -226,7 +226,7 @@ export class NgxMatTimepickerComponent<D> implements ControlValueAccessor, OnIni
     if (this.enableMeridian) {
       if (this.meridian === MERIDIANS.AM && _hour === LIMIT_TIMES.meridian) {
         _hour = 0;
-      } else if (this.meridian === MERIDIANS.PM && _hour !== LIMIT_TIMES.meridian) {
+      } else if (this.meridian === MERIDIANS.PM && _hour < LIMIT_TIMES.meridian) {
         _hour = _hour + LIMIT_TIMES.meridian;
       }
     }
